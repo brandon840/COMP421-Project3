@@ -1,7 +1,101 @@
 import java.sql.* ;
+import java.util.Scanner;
 
 class Soccer
 {
+    static void printMainMenu(){
+        System.out.println("Soccer Main Menu");
+        System.out.println("\t 1. List information of matches of a country");
+        System.out.println("\t 2. Insert initial player information for a match");
+        System.out.println("\t 3. For you to design");
+        System.out.println("\t 4. Exit application");
+        System.out.print("Please Enter Your Option: ");
+    }
+
+    static void listInfoCountry(int sqlCode, String sqlState, Statement statement, Connection con){
+        Scanner reader = new Scanner(System.in);
+        String country;
+        String choice;
+
+        do {
+            System.out.print("Enter a country name: ");
+            country = reader.next();
+
+            // Querying a table
+            try
+            {
+                String querySQL = "SELECT id, name from " + tableName + " WHERE NAME = \'Vicki\'";
+                System.out.println (querySQL) ;
+                java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
+
+                while ( rs.next ( ) )
+                {
+                    int id = rs.getInt ( 1 ) ;
+                    String name = rs.getString (2);
+                    System.out.println ("id:  " + id);
+                    System.out.println ("name:  " + name);
+                }
+                System.out.println ("DONE");
+            }
+            catch (SQLException e)
+            {
+                sqlCode = e.getErrorCode(); // Get SQLCODE
+                sqlState = e.getSQLState(); // Get SQLSTATE
+
+                // Your code to handle errors comes here;
+                // something more meaningful than a print would be good
+                System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
+                System.out.println(e);
+            }
+
+
+            System.out.print("Enter [A] to find matches of another country, [P] to go to the previous menu: ");
+            choice = reader.next();
+
+        }while(choice == "A");
+
+
+    }
+
+    static void initialPlayerInfo(int sqlCode, String sqlState, Statement statement, Connection con) {
+        System.out.println("Matches: ");
+        /*
+            TODO: List all matches that will take place in the next 3 days
+         */
+
+        System.out.print("Enter match identifier and country seperated by a space: ");
+        Scanner reader = new Scanner(System.in);
+        String[] choice = reader.next().split(" ");
+        int matchID = Integer.parseInt(choice[0]);
+        String country = choice[1];
+        String playerID = reader.next();
+
+        do {
+
+        /*
+            TODO: Print all players of the chosen country that are registered to play in the selected matchID
+         */
+
+            System.out.print("Enter the number of the player you want to insert or [P] to go to the previous menu: ");
+
+            if (playerID.equals("P")) {
+                return;
+            }
+            System.out.print("Enter the specific position the player will have: ");
+            String playerPosition = reader.next();
+
+        /*
+            TODO: Enter this new player into the database with default values for the other attributes
+            TODO: Print same output as above + new player
+         */
+        } while (true);
+    }
+    static void forYouToDesign(int sqlCode, String sqlState, Statement statement, Connection con){
+
+    }
+
+
+
     public static void main ( String [ ] args ) throws SQLException
     {
         // Unique table names.  Either the user supplies a unique identifier as a command line argument, or the program makes one up.
@@ -39,6 +133,30 @@ class Soccer
         }
         Connection con = DriverManager.getConnection (url,your_userid,your_password) ;
         Statement statement = con.createStatement ( ) ;
+
+        Scanner reader = new Scanner(System.in);
+        int choice;
+
+        do {
+            printMainMenu();
+            choice = reader.nextInt();
+
+            if (choice == 1){
+                listInfoCountry(sqlCode, sqlState, statement, con);
+            }
+            else if (choice == 2){
+                initialPlayerInfo(sqlCode, sqlState, statement, con);
+
+            }else if (choice == 3){
+                forYouToDesign(sqlCode, sqlState, statement, con);
+
+            }else{
+                // Close statement and connection
+                statement.close ( ) ;
+                con.close ( ) ;
+            }
+
+        }while(choice != 4);
 
         // Creating a table
         try
