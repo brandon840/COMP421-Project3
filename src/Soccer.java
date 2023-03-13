@@ -22,10 +22,10 @@ class Soccer
             System.out.print("Enter a country name: ");
             country = reader.next();
 
-            // Query to get
+            // Query to get team_country1, team_country2, match date and round_number
             try
             {
-                String querySQL = "SELECT t1.team_country, t2.team_country, m.match_date, m.round_number\n" +
+                String querySQL = "SELECT t1.match_id, t1.team_country, t2.team_country, m.match_date, m.round_number\n" +
                         "FROM teamPlays t1 \n" +
                         "JOIN teamPlays t2 ON t1.match_id = t2.match_id\n" +
                         "JOIN match m ON m.match_id = t1.match_id\n" +
@@ -36,14 +36,73 @@ class Soccer
 
                 while ( rs.next ( ) )
                 {
+                    int match_id = rs.getInt ( 1 );
                     String team_country1 = rs.getString (2);
                     String team_country2 = rs.getString (3);
                     String match_date = rs.getString (4);
-                    int round_number = rs.getInt ( 5 ) ;
-                    System.out.println ("id:  " + id);
-                    System.out.println ("name:  " + name);
+                    String round_number = Integer.toString(rs.getInt ( 5 ));
                 }
-                System.out.println ("DONE");
+            }
+            catch (SQLException e)
+            {
+                sqlCode = e.getErrorCode(); // Get SQLCODE
+                sqlState = e.getSQLState(); // Get SQLSTATE
+
+                // Your code to handle errors comes here;
+                // something more meaningful than a print would be good
+                System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
+                System.out.println(e);
+            }
+
+            // Query to get number of goals scored by each team
+            try
+            {
+                String querySQL = "SELECT s.match_id, i.team_country, COUNT(g.goal_id) as num_goals_scored\n" +
+                        "FROM scoredIn s \n" +
+                        "JOIN goal g ON s.goal_id = g.goal_id\n" +
+                        "JOIN isPartOf i ON g.player_id = i.player_id\n" +
+                        "WHERE s.match_id in \n" +
+                        "(SELECT match_id\n" +
+                        "FROM teamPlays  \n" +
+                        "WHERE team_country = "+ country + ")\n" +
+                        "GROUP BY s.match_id, i.team_country\n" +
+                        ";";
+
+                System.out.println (querySQL);
+                java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
+
+                while ( rs.next ( ) )
+                {
+                    int match_id = rs.getInt ( 1 );
+                    String team_country = rs.getString (2);
+                    int num_goals_scored = rs.getInt (3);
+                }
+            }
+            catch (SQLException e)
+            {
+                sqlCode = e.getErrorCode(); // Get SQLCODE
+                sqlState = e.getSQLState(); // Get SQLSTATE
+
+                // Your code to handle errors comes here;
+                // something more meaningful than a print would be good
+                System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
+                System.out.println(e);
+            }
+
+            // Query to get ticket sales
+            try
+            {
+                String querySQL = "";
+
+                System.out.println (querySQL);
+                java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
+
+                while ( rs.next ( ) )
+                {
+                    int match_id = rs.getInt ( 1 );
+                    String team_country = rs.getString (2);
+                    int num_goals_scored = rs.getInt (3);
+                }
             }
             catch (SQLException e)
             {
