@@ -14,6 +14,7 @@ class Soccer
 
     static void listInfoCountry(int sqlCode, String sqlState, Statement statement, Connection con){
         Scanner reader = new Scanner(System.in);
+        String[] rounds = {"group-round", "round-of-16", "quarterfinals", "semifinals", "3rd-place", "final"};
         String country;
         String choice;
 
@@ -21,17 +22,24 @@ class Soccer
             System.out.print("Enter a country name: ");
             country = reader.next();
 
-            // Querying a table
+            // Query to get
             try
             {
-                String querySQL = "SELECT id, name from " + tableName + " WHERE NAME = \'Vicki\'";
-                System.out.println (querySQL) ;
+                String querySQL = "SELECT t1.team_country, t2.team_country, m.match_date, m.round_number\n" +
+                        "FROM teamPlays t1 \n" +
+                        "JOIN teamPlays t2 ON t1.match_id = t2.match_id\n" +
+                        "JOIN match m ON m.match_id = t1.match_id\n" +
+                        "WHERE t1.team_country != t2.team_country AND t1.team_country =" + country + ";";
+
+                System.out.println (querySQL);
                 java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
 
                 while ( rs.next ( ) )
                 {
-                    int id = rs.getInt ( 1 ) ;
-                    String name = rs.getString (2);
+                    String team_country1 = rs.getString (2);
+                    String team_country2 = rs.getString (3);
+                    String match_date = rs.getString (4);
+                    int round_number = rs.getInt ( 5 ) ;
                     System.out.println ("id:  " + id);
                     System.out.println ("name:  " + name);
                 }
