@@ -1,5 +1,8 @@
 import java.sql.* ;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 class Soccer
 {
@@ -27,11 +30,9 @@ class Soccer
             // Query to get team_country1, team_country2, match date and round_number
             try
             {
-                String querySQL = "SELECT t1.match_id, t1.team_country, t2.team_country, m.match_date, m.round_number\n" +
-                        "FROM teamPlays t1 \n" +
-                        "JOIN teamPlays t2 ON t1.match_id = t2.match_id\n" +
-                        "JOIN match m ON m.match_id = t1.match_id\n" +
-                        "WHERE t1.team_country != t2.team_country AND t1.team_country = '" + country + "';";
+                String querySQL = "SELECT match_id, team1, team2, match_date, round_number\n" +
+                        "FROM match\n" +
+                        "WHERE team1 = '"+country+"' OR team2 = '"+country+"';";
 
                 //System.out.println (querySQL);
                 java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
@@ -44,12 +45,21 @@ class Soccer
                     String match_date = rs.getString (4);
                     int round_number = rs.getInt ( 5 );
 
+                    SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+                    Date match_date_formatted = dateFormatter.parse(match_date);
+                    Date todayDate = new Date();
                     ArrayList<String> content = new ArrayList<String>();
-                    content.add(team_country1);
-                    content.add(team_country2);
-                    content.add(match_date);
-                    content.add(rounds[round_number]);
-                    dict.put(match_id, content);
+
+                    // Check if match date after current time
+                    if (match_date_formatted.compareTo(todayDate) > 0){
+                        Collections.addAll(content, team_country1, team_country2, match_date, rounds[round_number], "NULL", "NULL");
+                        dict.put(match_id, content);
+                    }else{
+                        Collections.addAll(content, team_country1, team_country2, match_date, rounds[round_number]);
+                        dict.put(match_id, content);
+                    }
+
+
                 }
             }
             catch (SQLException e)
@@ -61,6 +71,8 @@ class Soccer
                 // something more meaningful than a print would be good
                 System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
                 System.out.println(e);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
             }
 
             // Query to get number of goals scored by each team
@@ -94,6 +106,12 @@ class Soccer
                     String num_goals_scored_team1 = Integer.toString(rs.getInt (4));
                     String num_goals_scored_team2 = Integer.toString(rs.getInt (5));
 
+                    // Check if we already put null values for the score
+                    if (dict.get(match_id).size() > 4){
+                        continue;
+                    }
+
+
                     // This is just in case the country orders are switched
                     if (dict.get(match_id).get(0).equals(team1)){
                         dict.get(match_id).add(num_goals_scored_team1);
@@ -104,6 +122,15 @@ class Soccer
                     }
 
                 }
+                for(Integer key: dict.keySet()) {
+                    ArrayList<String> val = dict.get(key);
+                    if (val.size() <= 4){
+                        val.add("0");
+                        val.add("0");
+                    }
+
+                }
+
             }
             catch (SQLException e)
             {
@@ -133,6 +160,14 @@ class Soccer
                     int match_id = rs.getInt ( 1 );
                     String num_tickets_sold = Integer.toString(rs.getInt(2));
                     dict.get(match_id).add(num_tickets_sold);
+                }
+
+                for(Integer key: dict.keySet()) {
+                    ArrayList<String> val = dict.get(key);
+                    if (val.size() <= 6){
+                        val.add("0");
+                    }
+
                 }
             }
             catch (SQLException e)
