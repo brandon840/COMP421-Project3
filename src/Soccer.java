@@ -15,12 +15,12 @@ class Soccer
 
     static void listInfoCountry(int sqlCode, String sqlState, Statement statement, Connection con){
         Scanner reader = new Scanner(System.in);
-        Map<Integer,  ArrayList<String>> dict = new HashMap<Integer, ArrayList<String>>();
-
-        String country;
         String choice;
-
         do {
+            String country;
+
+
+            Map<Integer,  ArrayList<String>> dict = new HashMap<>();
             System.out.print("Enter a country name: ");
             country = reader.nextLine();
 
@@ -31,7 +31,7 @@ class Soccer
                         "FROM teamPlays t1 \n" +
                         "JOIN teamPlays t2 ON t1.match_id = t2.match_id\n" +
                         "JOIN match m ON m.match_id = t1.match_id\n" +
-                        "WHERE t1.team_country != t2.team_country AND t1.team_country =" + country + ";";
+                        "WHERE t1.team_country != t2.team_country AND t1.team_country = '" + country + "';";
 
                 //System.out.println (querySQL);
                 java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
@@ -43,10 +43,13 @@ class Soccer
                     String team_country2 = rs.getString (3);
                     String match_date = rs.getString (4);
                     int round_number = rs.getInt ( 5 );
+
                     ArrayList<String> content = new ArrayList<String>();
-                    Collections.addAll(content, team_country1,team_country2, match_date, rounds[round_number]);
+                    content.add(team_country1);
+                    content.add(team_country2);
+                    content.add(match_date);
+                    content.add(rounds[round_number]);
                     dict.put(match_id, content);
-                    System.out.print(dict.get(match_id));
                 }
             }
             catch (SQLException e)
@@ -73,14 +76,14 @@ class Soccer
                         "WHERE t.match_id in \n" +
                         "(SELECT match_id\n" +
                         "FROM teamPlays  \n" +
-                        "WHERE team_country = 'Argentina')\n" +
+                        "WHERE team_country = '"+country+"')\n" +
                         "GROUP BY t.match_id, t.team_country\n" +
                         ")\n" +
                         "SELECT r1.match_id, r1.team_country, r2.team_country, r1.num_goals_scored, r2.num_goals_scored\n" +
                         "FROM res r1 JOIN res r2 ON r1.match_id=r2.match_id\n" +
-                        "WHERE r1.team_country != r2.team_country AND r1.team_country = 'Argentina';";
+                        "WHERE r1.team_country != r2.team_country AND r1.team_country = '"+country+"';";
 
-                System.out.println (querySQL);
+                //System.out.println (querySQL);
                 java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
 
                 while ( rs.next ( ) )
@@ -116,11 +119,13 @@ class Soccer
             // Query to get ticket sales
             try
             {
-                String querySQL = "SELECT match_id, COUNT(ticket_id) AS num_tickets_sold\n" +
+                String querySQL = "SELECT pertainsTo.match_id, COUNT(pertainsTo.ticket_id) AS number_of_tickets\n" +
                         "FROM pertainsTo\n" +
-                        "GROUP BY match_id;";
+                        "JOIN match ON pertainsTo.match_id=match.match_id\n" +
+                        "WHERE match.team1 = '"+country+"' OR match.team2 = '"+country+"'\n" +
+                        "GROUP BY pertainsTo.match_id;";
 
-                System.out.println (querySQL);
+                //System.out.println (querySQL);
                 java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
 
                 while ( rs.next ( ) )
@@ -145,7 +150,7 @@ class Soccer
             for(Integer key: dict.keySet()){
                 ArrayList<String> val = dict.get(key);
                 String out = "";
-                for (int i = 1; i<val.size(); i++){
+                for (int i = 0; i<val.size(); i++){
                     out += val.get(i);
                     if (i < val.size()-1){
                         out += "\t";
@@ -159,7 +164,7 @@ class Soccer
             System.out.print("Enter [A] to find matches of another country, [P] to go to the previous menu: ");
             choice = reader.nextLine();
 
-        }while(choice == "A");
+        }while(choice.equals("A"));
 
 
     }
