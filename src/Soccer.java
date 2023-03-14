@@ -372,7 +372,12 @@ class Soccer
                 }
             }else{
                 System.out.print("Max number of entered players (" + maxNumPlayers + ") reached. Enter [P] to go back to the main menu: ");
-                return;
+
+                String input = reader.nextLine();
+                do {
+                    if(input.equals("P")) return;
+                    input = reader.nextLine();
+                } while(!input.equals("P"));
             }
 
 
