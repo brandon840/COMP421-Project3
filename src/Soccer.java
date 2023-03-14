@@ -8,7 +8,7 @@ class Soccer
         System.out.println("Soccer Main Menu");
         System.out.println("\t 1. List information of matches of a country");
         System.out.println("\t 2. Insert initial player information for a match");
-        System.out.println("\t 3. For you to design");
+        System.out.println("\t 3. Insert goal information");
         System.out.println("\t 4. Exit application");
         System.out.print("Please Enter Your Option: ");
     }
@@ -22,7 +22,7 @@ class Soccer
 
         do {
             System.out.print("Enter a country name: ");
-            country = reader.next();
+            country = reader.nextLine();
 
             // Query to get team_country1, team_country2, match date and round_number
             try
@@ -157,7 +157,7 @@ class Soccer
             }
 
             System.out.print("Enter [A] to find matches of another country, [P] to go to the previous menu: ");
-            choice = reader.next();
+            choice = reader.nextLine();
 
         }while(choice == "A");
 
@@ -180,11 +180,11 @@ class Soccer
 
             while ( rs.next ( ) )
             {
-                int match_id = rs.getInt ( 0 );
-                String team1 = rs.getString (1);
-                String team2 = rs.getString (2);
-                String match_date = rs.getString (3);
-                String round_number = rounds[rs.getInt(4)];
+                int match_id = rs.getInt ( 1 );
+                String team1 = rs.getString (2);
+                String team2 = rs.getString (3);
+                String match_date = rs.getString (4);
+                String round_number = rounds[rs.getInt(5)];
 
                 String out = "\t" + match_id + "\t" + team1 + "\t" + team2 + "\t" + match_date + "\t" + round_number;
                 System.out.println(out);
@@ -203,12 +203,13 @@ class Soccer
 
         System.out.print("Enter match identifier and country seperated by a space: ");
         Scanner reader = new Scanner(System.in);
-        String[] choice = reader.next().split(" ");
+        String[] choice = reader.nextLine().split("\\s+");
         int matchID = Integer.parseInt(choice[0]);
         String country = choice[1];
-        System.out.println("The following players from " + country + " are already entered for match " + matchID + ":\n");
+
 
         do {
+            System.out.println("\nThe following players from " + country + " are already entered for match " + matchID + ":\n");
             int numPlayers = 0; // Need this to keep track of number of players in the match
 
             // Print players already entered in the match
@@ -219,7 +220,7 @@ class Soccer
                         "JOIN person ON player.player_id=person.person_id\n" +
                         "JOIN plays ON player.player_id=plays.player_id\n" +
                         "JOIN isPartOf ON player.player_id=isPartOf.player_id\n" +
-                        "WHERE isPartOf.team_country = "+ country +"\n" +
+                        "WHERE isPartOf.team_country = '"+ country +"'\n" +
                         "AND plays.match_id= "+matchID+";\n";
 
                 //System.out.println (querySQL);
@@ -227,16 +228,16 @@ class Soccer
 
                 while ( rs.next ( ) )
                 {
-                    String name = rs.getString ( 0 );
-                    int shirt_num = rs.getInt (1);
-                    String position = rs.getString (2);
-                    int minute_entered = rs.getInt (3);
-                    int minute_left = rs.getInt (4);
-                    int num_yellow_cards = rs.getInt (5);
-                    int num_red_cards = rs.getInt (6);
+                    String name = rs.getString ( 1 );
+                    int shirt_num = rs.getInt (2);
+                    String position = rs.getString (3);
+                    int minute_entered = rs.getInt (4);
+                    int minute_left = rs.getInt (5);
+                    int num_yellow_cards = rs.getInt (6);
+                    int num_red_cards = rs.getInt (7);
                     numPlayers++;
 
-                    String out = name + "\t" + shirt_num + "\t" + position + "\t" + minute_entered + "\t" + minute_left+ "\t" + num_yellow_cards + "\t" + num_red_cards;
+                    String out = name + "\t" + shirt_num + "\t" + position + "\tfrom minute: " + minute_entered + "\tto minute: " + minute_left+ "\tyellow: " + num_yellow_cards + "\tred: " + num_red_cards;
                     System.out.println(out);
                 }
             }
@@ -252,7 +253,7 @@ class Soccer
             }
 
             // Get remaining players
-            System.out.println("Possible players from " + country+ " not yet selected:");
+            System.out.println("\nPossible players from " + country+ " not yet selected:");
             ArrayList<String> remaining_player_names = new ArrayList<String>();
             ArrayList<Integer> remaining_player_ID = new ArrayList<Integer>();
             int i = 1;
@@ -262,26 +263,26 @@ class Soccer
                         "FROM player\n" +
                         "JOIN person ON player.player_id=person.person_id\n" +
                         "JOIN isPartOf ON player.player_id=isPartOf.player_id\n" +
-                        "WHERE isPartOf.team_country = 'Argentina'\n" +
+                        "WHERE isPartOf.team_country = '"+country+"'\n" +
                         "AND player.player_id NOT IN \n" +
                         "(SELECT plays.player_id \n" +
                         "FROM player\n" +
                         "JOIN isPartOf ON player.player_id=isPartOf.player_id\n" +
                         "JOIN plays ON player.player_id=plays.player_id\n" +
-                        "WHERE isPartOf.team_country="+country+" AND plays.match_id = "+matchID+"\n" +
+                        "WHERE isPartOf.team_country='"+country+"' AND plays.match_id = "+matchID+"\n" +
                         ");";
 
                 //System.out.println (querySQL);
                 java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
                 while ( rs.next ( ) )
                 {
-                    String name = rs.getString ( 0 );
+                    String name = rs.getString ( 1 );
                     remaining_player_names.add(name);
 
-                    int shirt_num = rs.getInt (1);
-                    String position = rs.getString (2);
+                    int shirt_num = rs.getInt (2);
+                    String position = rs.getString (3);
 
-                    int playerID = rs.getInt(3);    //Need this for later
+                    int playerID = rs.getInt(4);    //Need this for later
                     remaining_player_ID.add(playerID);
 
                     String out = i + ". " + name + "\t" + shirt_num + "\t" + position;
@@ -301,19 +302,19 @@ class Soccer
             }
 
             if (numPlayers < 11){
-                System.out.print("Enter the (choice) number of the player you want to insert or [P] to go to the previous menu: ");
-                String input = reader.next();
+                System.out.print("\nEnter the (choice) number of the player you want to insert or [P] to go to the previous menu: ");
+                String input = reader.nextLine();
                 if (input.equals("P")) {
                     return;
                 }
 
                 System.out.print("Enter the specific position the player will have: ");
-                String detailedPosition = reader.next();
+                String detailedPosition = reader.nextLine();
 
                 // Insert the player into "plays" table
                 try
                 {
-                    String insertSQL = "INSERT INTO plays VALUES ("+matchID+","+ remaining_player_ID.get(i - 1) + ", 0, 0, 0, NULL, "+ detailedPosition +")";
+                    String insertSQL = "INSERT INTO plays VALUES ("+matchID+","+ remaining_player_ID.get(Integer.parseInt(input) - 1) + ", 0, 0, 0, NULL, '"+ detailedPosition +"')";
                     statement.executeUpdate ( insertSQL ) ;
 
                 }
@@ -336,7 +337,7 @@ class Soccer
 
         } while (true);
     }
-    static void forYouToDesign(int sqlCode, String sqlState, Statement statement, Connection con){
+    static void insertGoalInfo(int sqlCode, String sqlState, Statement statement, Connection con){
 
     }
 
@@ -394,7 +395,7 @@ class Soccer
                 initialPlayerInfo(sqlCode, sqlState, statement, con);
 
             }else if (choice == 3){
-                forYouToDesign(sqlCode, sqlState, statement, con);
+                insertGoalInfo(sqlCode, sqlState, statement, con);
 
             }else{
                 // Close statement and connection
