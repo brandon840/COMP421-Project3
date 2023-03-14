@@ -379,6 +379,149 @@ class Soccer
     }
     static void insertGoalInfo(int sqlCode, String sqlState, Statement statement, Connection con){
 
+        while(true) {
+            System.out.print("Enter the match id: ");
+            Scanner reader = new Scanner(System.in);
+            int match_id = Integer.parseInt(reader.nextLine());
+            System.out.println();
+            System.out.println("Here are all the goals scored in match "+ match_id +": \n");
+
+            // Show goal information for chosen match
+            try
+            {
+                String querySQL = "SELECT p.name, i.team_country,g.minute, \n" +
+                        "CASE\n" +
+                        "\tWHEN g.during_penalty_kicks=0 THEN 'NO'\n" +
+                        "\tELSE 'YES'\n" +
+                        "END AS penalty_kick\n" +
+                        ", g.occurrence\n" +
+                        "FROM goal g\n" +
+                        "JOIN person p ON g.player_id=p.person_id\n" +
+                        "JOIN isPartOf i ON g.player_id=i.player_id\n" +
+                        "JOIN scoredIn s ON g.goal_id=s.goal_id\n" +
+                        "WHERE s.match_id = "+match_id+"\n" +
+                        "ORDER BY g.occurrence ASC;";
+
+                //System.out.println (querySQL);
+                java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
+                while ( rs.next ( ) )
+                {
+                    String playerName = rs.getString(1);
+                    String teamCountry = rs.getString(2);
+                    int playMinute = rs.getInt(3);
+                    String penaltyKickYN = rs.getString(4);
+                    int playOccurrence = rs.getInt(5);
+
+                    String out = playerName + "\t" + teamCountry+ "\tMinute Scored: " + playMinute+ "\tpenalty kick: " + penaltyKickYN + "\tOccurrence: " + playOccurrence;
+                    System.out.println(out);
+                }
+            }
+            catch (SQLException e)
+            {
+                sqlCode = e.getErrorCode(); // Get SQLCODE
+                sqlState = e.getSQLState(); // Get SQLSTATE
+
+                // Your code to handle errors comes here;
+                // something more meaningful than a print would be good
+                System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
+                System.out.println(e);
+            }
+
+            System.out.print("\nEnter [G] to add another goal to this match, press [P] to return to main menu:");
+            String a = reader.nextLine();
+            if (a.equals("P")){
+                return;
+            }
+
+            System.out.print("Enter the country of the team that scored: ");
+            String country = reader.nextLine();
+
+            System.out.print("Enter the name of the player who scored: ");
+            String name = reader.nextLine();
+            System.out.println();
+
+            System.out.print("Enter the time (minute) of the goal: ");
+            int minute = Integer.parseInt(reader.nextLine());
+            System.out.println();
+
+            System.out.print("Was the goal scored during penalty kicks? (y/n): ");
+            String input = reader.nextLine();
+            String penalty = "";
+
+            if (input.equals("y")) {
+                penalty = "1";
+            } else {
+                penalty = "0";
+            }
+            System.out.println();
+
+            // Need to get some info first
+            int numOccurrences = 0;
+            int numGoals = 0;
+            int playerID = 0;
+            try {
+                String querySQL = "SELECT COUNT(*) FROM goal";
+
+                //System.out.println (querySQL);
+                java.sql.ResultSet rs = statement.executeQuery(querySQL);
+                while (rs.next()) {
+                    numGoals = rs.getInt(1);
+                }
+
+                querySQL = "SELECT COUNT(*)\n" +
+                        "FROM goal g\n" +
+                        "JOIN scoredIn s ON g.goal_id, s.goal_id\n" +
+                        "WHERE s.match_id = " + match_id + ";";
+
+                rs = statement.executeQuery(querySQL);
+                while (rs.next()) {
+                    numOccurrences = rs.getInt(1);
+                }
+
+                querySQL = "SELECT player.player_id\n" +
+                        "FROM person\n" +
+                        "JOIN player ON person.person_id = player.player_id\n" +
+                        "WHERE person.name = '" + name + "';";
+                rs = statement.executeQuery(querySQL);
+                while (rs.next()) {
+                    playerID = rs.getInt(1);
+                }
+            } catch (SQLException e) {
+                sqlCode = e.getErrorCode(); // Get SQLCODE
+                sqlState = e.getSQLState(); // Get SQLSTATE
+
+                // Your code to handle errors comes here;
+                // something more meaningful than a print would be good
+                System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
+                System.out.println(e);
+            }
+
+            // Insert the goal!
+            try {
+                // Update "goal" table
+                String insertSQL = "INSERT INTO goal VALUES (" + numGoals + "," + minute + "," + numOccurrences + 1 + "," + penalty + "," + playerID + ")";
+                statement.executeUpdate(insertSQL);
+
+                // Update "scoredIn" table
+                insertSQL = "INSERT INTO scoredIn VALUES(" + numGoals + "," + match_id + ")";
+                statement.executeUpdate(insertSQL);
+
+            } catch (SQLException e) {
+                sqlCode = e.getErrorCode(); // Get SQLCODE
+                sqlState = e.getSQLState(); // Get SQLSTATE
+
+                // Your code to handle errors comes here;
+                // something more meaningful than a print would be good
+                System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
+                System.out.println(e);
+            }
+
+            System.out.print("Enter [G] to enter another goal, [P] to go to the previous menu: ");
+            String action = reader.nextLine();
+            if (action.equals("P")){
+                return;
+            }
+        }
     }
 
 
