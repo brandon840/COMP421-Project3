@@ -516,11 +516,7 @@ class Soccer
                 System.out.println(e);
             }
 
-            System.out.print("Enter [G] to enter another goal, [P] to go to the previous menu: ");
-            String action = reader.nextLine();
-            if (action.equals("P")){
-                return;
-            }
+
         }
     }
 
