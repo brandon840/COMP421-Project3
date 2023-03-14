@@ -212,7 +212,7 @@ class Soccer
         {
             String querySQL = "SELECT match_id, team1, team2, match_date, round_number\n" +
                     "FROM match\n" +
-                    "WHERE team1 IS NOT NULL OR team2 IS NOT NULL \n" +
+                    "WHERE (team1 IS NOT NULL OR team2 IS NOT NULL)\n" +
                     "AND match_date BETWEEN CURRENT DATE AND ADD_DAYS(CURRENT_DATE, 3);";
 
             //System.out.println (querySQL);
