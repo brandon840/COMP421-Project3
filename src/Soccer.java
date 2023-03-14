@@ -477,7 +477,7 @@ class Soccer
 
                 querySQL = "SELECT COUNT(*)\n" +
                         "FROM goal g\n" +
-                        "JOIN scoredIn s ON g.goal_id, s.goal_id\n" +
+                        "JOIN scoredIn s ON g.goal_id = s.goal_id\n" +
                         "WHERE s.match_id = " + match_id + ";";
 
                 rs = statement.executeQuery(querySQL);
@@ -523,6 +523,11 @@ class Soccer
                 System.out.println(e);
             }
 
+            System.out.print("\nEnter [G] to add another goal to a match, press [P] to return to main menu: ");
+            String end_action = reader.nextLine();
+            if (end_action.equals("P")){
+                return;
+            }
 
         }
     }
