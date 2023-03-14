@@ -341,7 +341,9 @@ class Soccer
                 System.out.println(e);
             }
 
-            if (numPlayers < 11){
+            int maxNumPlayers = 2;
+
+            if (numPlayers < maxNumPlayers){
                 System.out.print("\nEnter the (choice) number of the player you want to insert or [P] to go to the previous menu: ");
                 String input = reader.nextLine();
                 if (input.equals("P")) {
@@ -369,7 +371,7 @@ class Soccer
                     System.out.println(e);
                 }
             }else{
-                System.out.print("Max number of entered players (11) reached. Enter [P] to go back to the main menu: ");
+                System.out.print("Max number of entered players " + maxNumPlayers + "  reached. Enter [P] to go back to the main menu: ");
                 return;
             }
 
