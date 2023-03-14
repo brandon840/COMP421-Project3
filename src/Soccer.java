@@ -371,7 +371,7 @@ class Soccer
                     System.out.println(e);
                 }
             }else{
-                System.out.print("Max number of entered players " + maxNumPlayers + "  reached. Enter [P] to go back to the main menu: ");
+                System.out.print("Max number of entered players (" + maxNumPlayers + ") reached. Enter [P] to go back to the main menu: ");
                 return;
             }
 
